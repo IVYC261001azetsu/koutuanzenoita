@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="大分県の高齢者交通事故、死亡・重傷事故、交差点、速度、時間帯を可視化する試作Webアプリ">
+<title>おおいた交通安全マップ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+ <a class="brand" href="#" aria-label="ホーム"><span class="brand-mark">＋</span><span><strong>おおいた交通安全マップ</strong><small>OITA ROAD SAFETY</small></span></a>
+ <button class="menu-toggle" id="menuToggle" aria-label="メニュー">☰</button>
+ <nav class="main-nav"><button class="nav-link active" data-view="home">概要</button><button class="nav-link" data-view="map">危険マップ</button><button class="nav-link" data-view="stats">事故データ</button><button class="nav-link" data-view="risk">6項目の危険度</button><button class="nav-link" data-view="about">データについて</button></nav>
+</header>
+<main>
+<section class="hero">
+ <div class="hero-copy"><span class="eyebrow">大分県の交通安全を、見える化する</span><h1>いつもの道に、<br><em>気づける安全</em>を。</h1><p>高齢者事故、死亡・重傷事故、交差点の死角、車の速度、時間帯。事故の傾向と道路環境をまとめて確認できます。</p><div class="hero-actions"><button class="btn btn-primary" data-go="map">危険マップを見る →</button><button class="btn btn-light" data-go="risk">危険度を確認</button></div></div>
+ <div class="hero-visual" aria-hidden="true"><div class="visual-circle"></div><div class="visual-circle circle-two"></div><div class="road-line"></div><span class="pin pin-a">!</span><span class="pin pin-b">!</span><span class="pin pin-c">!</span><div class="visual-card"><b>安全確認</b><small>交差点ではゆっくりと</small></div></div>
+</section>
+
+<section class="page-view active" id="view-home">
+ <div class="section-heading"><div><span class="eyebrow">2025 / 令和7年</span><h2>大分県の交通事故状況</h2><p class="section-lead">事故件数だけでなく、事故後の被害の大きさにも注目します。</p></div><span class="data-tag">提示資料に基づく暫定値</span></div>
+ <div class="stat-grid">
+  <article class="stat-card"><span>交通事故件数</span><strong>1,993<small>件</small></strong><em class="good">前年比 6.2%減</em></article>
+  <article class="stat-card"><span>交通事故死者数</span><strong>41<small>人</small></strong><em class="bad">前年比 46.4%増</em></article>
+  <article class="stat-card"><span>重傷者数</span><strong>237<small>人</small></strong><em class="bad">前年比 11.8%増</em></article>
+  <article class="stat-card dark"><span>65歳以上の死者</span><strong>23<small>人</small></strong><em>死者全体の約56.1%</em></article>
+ </div>
+ <div class="insight-banner"><b>重要なポイント</b><p>令和7年は事故件数が減少する一方、死者数・重傷者数は増加。事故を減らすだけでなく、衝突を避けること・衝突時の速度を下げることが重要です。</p></div>
+ <div class="content-grid">
+  <article class="panel"><div class="panel-heading"><div><span class="eyebrow">MAP</span><h3>大分県内のエリア表示</h3></div><button class="text-button" data-go="map">地図を開く →</button></div><div id="miniMap" class="mini-map"></div><p class="small-muted">地図のピンは市町村周辺のデモ表示であり、事故発生地点ではありません。</p></article>
+  <article class="panel"><div class="panel-heading"><div><span class="eyebrow">PRIORITY</span><h3>重点的に確認したい項目</h3></div></div>
+   <div class="priority"><span class="num red">01</span><div><b>高齢者事故</b><small>65歳以上の死者23人</small></div><strong>5/5</strong></div>
+   <div class="priority"><span class="num red">02</span><div><b>死亡・重傷事故</b><small>死者・重傷者が前年比増加</small></div><strong>5/5</strong></div>
+   <div class="priority"><span class="num orange">03</span><div><b>速度・交差点</b><small>交差点安全進行違反162件</small></div><strong>5/5</strong></div>
+   <div class="priority"><span class="num orange">04</span><div><b>時間帯</b><small>夜間は事故件数に比べ死者割合が高い</small></div><strong>5/5</strong></div>
+   <div class="priority"><span class="num yellow">05</span><div><b>見通し・死角</b><small>交差点付近の道路環境を要確認</small></div><strong>4/5</strong></div>
+  </article>
+ </div>
+ <div class="notice"><b>データ上の注意</b><p>数値はユーザー提供の調査文をもとに入力した試作データです。年度・定義・集計区分に不整合がないか、公開前に大分県警察の原資料で再確認してください。</p></div>
+</section>
+
+<section class="page-view" id="view-map">
+ <div class="section-heading"><div><span class="eyebrow">大分県・地域別安全情報</span><h2>危険マップ</h2><p class="section-lead">地域や危険の種類を選ぶと、該当するエリアだけを地図に表示します。</p></div></div>
+ <div class="map-layout"><aside class="panel map-controls">
+  <div class="filter-heading"><span class="filter-icon">絞</span><div><b>表示条件</b><small>見たい情報を選択</small></div></div>
+  <label for="areaFilter">地域を選ぶ</label><select id="areaFilter"><option value="all">大分県全域</option><option>中部</option><option>北部</option><option>西部</option><option>南部</option></select>
+  <label for="riskFilter">危険度で絞る</label><select id="riskFilter"><option value="all">すべての危険度</option><option value="高">高（重点確認）</option><option value="注意">注意（周囲に注意）</option></select>
+  <label for="causeFilter">危険の種類で絞る</label><select id="causeFilter"><option value="all">すべての危険要因</option><option value="高齢者">高齢者に関係する事故</option><option value="交差点">交差点</option><option value="死角">見通し・死角</option><option value="速度">車の速度</option><option value="夜間">夜間</option></select>
+  <button type="button" class="reset-filters" id="resetFilters">条件をリセット</button>
+  <div class="legend"><b>マーカーの見方</b><span><i class="dot high"></i><strong>赤色</strong>：重点的な調査・対策候補</span><span><i class="dot mid"></i><strong>橙色</strong>：周囲に注意して通行</span></div><p class="small-muted">危険度は県全体の傾向を参考にした仮評価です。市町村別の事故率や、実際の事故発生地点を示すものではありません。</p>
+ </aside><article class="panel map-panel"><div class="map-toolbar"><div><b>大分県のエリアマップ</b><small>マーカーを押すと地域の注意点を確認できます</small></div><span class="map-status"><i></i>地図表示</span></div><div id="mainMap" aria-label="大分県の地域別危険マップ"></div><div class="map-credit">地図：国土地理院「淡色地図」</div></article></div>
+ <article class="panel"><div class="panel-heading"><h3>エリア情報（デモ）</h3><span id="resultCount" class="small-muted"></span></div><div id="areaCards" class="area-cards"></div></article>
+</section>
+
+<section class="page-view" id="view-stats">
+ <div class="section-heading"><div><span class="eyebrow">DATA & ANALYSIS</span><h2>事故データ</h2><p class="section-lead">令和6年・令和7年の比較と、時間帯・事故原因の傾向を確認できます。</p></div><span class="data-tag">暫定値</span></div>
+ <div class="panel"><h3>令和6年・令和7年の比較</h3><div class="table-wrap"><table><thead><tr><th>指標</th><th>令和6年</th><th>令和7年</th><th>変化</th></tr></thead><tbody>
+ <tr><td>事故件数</td><td>2,125件</td><td>1,993件</td><td class="good">6.2%減</td></tr><tr><td>死者数</td><td>28人</td><td>41人</td><td class="bad">46.4%増</td></tr><tr><td>重傷者数</td><td>212人</td><td>237人</td><td class="bad">11.8%増</td></tr><tr><td>65歳以上の死者</td><td>19人</td><td>23人</td><td class="bad">4人増</td></tr>
+ </tbody></table></div><p class="small-muted">※高齢者の事故件数853件・重傷者92人は令和6年の提示値。令和7年の高齢者事故件数とは混同しないでください。</p></div>
+ <div class="chart-grid">
+  <article class="panel chart-panel"><h3>事故件数・死者数の比較</h3><canvas id="yearChart"></canvas></article>
+  <article class="panel chart-panel"><h3>時間帯別の死者数（令和7年）</h3><canvas id="deathTimeChart"></canvas></article>
+  <article class="panel chart-panel"><h3>昼間・夜間の事故件数</h3><canvas id="dayNightChart"></canvas></article>
+  <article class="panel chart-panel"><h3>事故原因・違反等の件数</h3><canvas id="causeChart"></canvas></article>
+ </div>
+ <article class="panel"><h3>時間帯別・死者数</h3><div class="table-wrap"><table><thead><tr><th>時間帯</th><th>死者数</th><th>時間帯</th><th>死者数</th></tr></thead><tbody>
+ <tr><td>4～6時</td><td>7人</td><td>6～8時</td><td>3人</td></tr><tr><td>8～10時</td><td>8人</td><td>10～12時</td><td>2人</td></tr><tr><td>12～14時</td><td>3人</td><td>14～16時</td><td>5人</td></tr><tr><td>16～18時</td><td>4人</td><td>18～20時</td><td>2人</td></tr><tr><td>20～22時</td><td>2人</td><td>22～24時</td><td>3人</td></tr><tr><td>0～4時</td><td>2人</td><td>合計</td><td>41人</td></tr>
+ </tbody></table></div></article>
+ <article class="panel"><h3>事故原因・違反等の分類</h3><div class="table-wrap"><table><thead><tr><th>項目</th><th>件数</th><th>項目</th><th>件数</th></tr></thead><tbody>
+ <tr><td>前方不注意</td><td>589件</td><td>安全不確認</td><td>522件</td></tr><tr><td>動静不注視</td><td>210件</td><td>交差点安全進行違反</td><td>162件</td></tr><tr><td>徐行・一時不停止</td><td>52件</td><td>安全速度違反</td><td>13件</td></tr>
+ </tbody></table></div><p class="small-muted">違反分類の件数は実際の走行速度や交差点進入速度（km/h）を示すものではありません。</p></article>
+</section>
+
+<section class="page-view" id="view-risk">
+ <div class="section-heading"><div><span class="eyebrow">RISK ASSESSMENT</span><h2>6項目の危険度分析</h2><p class="section-lead">事故の発生頻度・被害の重大性・予防の必要性をもとにした独自評価です。</p></div></div>
+ <div class="risk-cards">
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">01</span><span class="risk-score high">5 / 5　非常に高い</span></div><h3>高齢者事故（65歳以上）</h3><p class="big-stat">853<span>件</span><small>令和6年の高齢者関係事故・提示値</small></p><ul><li>令和6年の高齢者死亡者19人、重傷者92人。</li><li>令和7年の高齢者死亡者は23人で、死者全体の約56.1%。</li><li>高齢歩行者と高齢運転者の両方に配慮が必要。</li></ul><div class="countermeasure"><b>対策候補</b>横断歩道・歩道の改善、生活道路の速度抑制、運転者への注意喚起。</div></article>
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">02</span><span class="risk-score high">5 / 5　非常に高い</span></div><h3>事故の重さ（死亡・重傷）</h3><p class="big-stat">41<span>人</span><small>令和7年の交通事故死者数</small></p><ul><li>重傷者237人。令和6年の212人から増加。</li><li>人対車両事故277件、死亡事故14件という提示値。</li><li>事故件数の減少だけでは安全になったと判断できない。</li></ul><div class="countermeasure"><b>対策候補</b>歩行者保護、衝突回避、交差点の減速、車両速度の抑制。</div></article>
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">03</span><span class="risk-score mid">4 / 5　高い</span></div><h3>見通し・死角</h3><p class="big-stat">1,016<span>件</span><small>交差点・交差点付近の事故</small></p><ul><li>全事故の約51.0%が交差点・交差点付近。</li><li>建物の角、生垣・街路樹、駐車車両が視界を遮る可能性。</li><li>死角が直接原因となった県全体の件数は未確認。</li></ul><div class="countermeasure"><b>対策候補</b>現地確認、植栽の剪定、駐車規制、見通し確保、必要に応じたミラー設置。</div></article>
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">04</span><span class="risk-score high">5 / 5　非常に高い</span></div><h3>車の速度・交差点進入速度</h3><p class="big-stat">162<span>件</span><small>交差点安全進行違反・提示値</small></p><ul><li>徐行・一時不停止52件、安全速度違反13件。</li><li>実際の交差点進入速度（km/h）は提示統計からは分からない。</li><li>速度が高いほど停止距離・衝突時の被害が大きくなる。</li></ul><div class="countermeasure"><b>対策候補</b>速度計測、ゾーン30、ハンプ、路面表示、交差点手前の減速対策。</div></article>
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">05</span><span class="risk-score high">5 / 5　非常に高い</span></div><h3>時間帯（朝・夕方・夜間）</h3><p class="big-stat">16<span>人</span><small>夜間の死者数・提示値</small></p><ul><li>昼間1,534件・死者23人、夜間459件・死者16人。</li><li>夜間は事故件数の約23.0%に対し、死者の約39.0%。</li><li>死者数の時間帯別では4～6時7人、8～10時8人。</li></ul><div class="countermeasure"><b>対策候補</b>街灯・横断歩道照明、反射材、夕暮れ時の早めのライト点灯。</div></article>
+  <article class="panel risk-detail"><div class="risk-top"><span class="risk-number">06</span><span class="risk-score high">5 / 5　非常に高い</span></div><h3>交差点の安全性</h3><p class="big-stat">51.0<span>%</span><small>交差点・交差点付近の事故割合</small></p><ul><li>交差点内791件、交差点付近225件という提示値。</li><li>歩行者・自転車・自動車の動線が交錯しやすい。</li><li>安全不確認522件、前方不注意589件も注視。</li></ul><div class="countermeasure"><b>対策候補</b>停止線・横断歩道の視認性改善、見通し確保、交差点進入前の減速。</div></article>
+ </div>
+ <div class="notice"><b>評価の読み方</b><p>5段階評価は本アプリ独自の優先度判断です。公式の危険度ではなく、事故発生率や個別地点のリスクを統計的に算出したものでもありません。</p></div>
+</section>
+
+<section class="page-view" id="view-about">
+ <div class="section-heading"><div><span class="eyebrow">ABOUT & DATA QUALITY</span><h2>データについて</h2><p class="section-lead">数値の年度・定義・限界を明示し、誤解のない交通安全情報を目指します。</p></div></div>
+ <div class="about-grid">
+  <article class="panel"><span class="about-number">01</span><h3>データの年度</h3><p>令和6年の高齢者事故853件・死亡19人・重傷92人と、令和7年の全体事故1,993件・死者41人・重傷237人などを分けて表示しています。</p></article>
+  <article class="panel"><span class="about-number">02</span><h3>不足している情報</h3><p>死角別の事故件数、交差点進入時の実測速度、市町村別の年齢層別事故率は、この提示データだけでは確定できません。</p></article>
+  <article class="panel"><span class="about-number">03</span><h3>地図の意味</h3><p>地図マーカーは市町村周辺の位置を示すデモです。実際の事故地点、事故多発地点、行政の危険判定を示すものではありません。</p></article>
+ </div>
+ <article class="panel source-box"><h3>参考資料・確認先</h3><ul><li><a href="https://www.pref.oita.jp/site/keisatu/" target="_blank" rel="noopener">大分県警察 公式サイト</a>：交通事故発生状況・交通事故年報</li><li><a href="https://www.sonpo.or.jp/" target="_blank" rel="noopener">日本損害保険協会</a>：交通事故・交差点関連情報</li></ul><p class="small-muted">公開・発表前には、原資料の表題、対象期間、事故件数と死傷者数の定義、時間帯の区分を確認してください。</p></article>
+ <div class="notice"><b>安全上の注意</b><p>本アプリは試作・学習用です。実際の運転や通行では、現地の標識・信号・交通状況に従ってください。表示される危険度だけで安全を判断しないでください。</p></div>
+</section>
+</main>
+<footer><b>おおいた交通安全マップ</b><p>交通安全の第一歩は、危険に気づくこと。</p><small>Prototype / Oita Road Safety</small></footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+</body></html>
